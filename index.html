@@ -1,0 +1,430 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>あみだで発表順</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<style>
+:root{
+  --bg:#EDF0F5;
+  --surface:#FFFFFF;
+  --ink:#1B2233;
+  --muted:#5E6679;
+  --rail:#A7AFC0;
+  --rung:#6B7489;
+  --accent:#2F55D4;
+  --accent-ink:#FFFFFF;
+  --line:#D6DBE5;
+  --cover:#DDE2EC;
+  --cover-ink:#8A93A6;
+  --shadow:0 1px 2px rgba(20,30,60,.06),0 4px 14px rgba(20,30,60,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#11151E;
+    --surface:#1A202C;
+    --ink:#E8ECF4;
+    --muted:#9AA3B6;
+    --rail:#566078;
+    --rung:#8A94AC;
+    --accent:#7F9CFF;
+    --accent-ink:#0E1426;
+    --line:#2C3445;
+    --cover:#262E3E;
+    --cover-ink:#7F89A0;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 14px rgba(0,0,0,.25);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#11151E;
+  --surface:#1A202C;
+  --ink:#E8ECF4;
+  --muted:#9AA3B6;
+  --rail:#566078;
+  --rung:#8A94AC;
+  --accent:#7F9CFF;
+  --accent-ink:#0E1426;
+  --line:#2C3445;
+  --cover:#262E3E;
+  --cover-ink:#7F89A0;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 14px rgba(0,0,0,.25);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+  font-size:15px;line-height:1.6;
+  padding-inline:16px;padding-block:20px 40px;
+}
+.app{max-width:1280px;margin-inline:auto;display:grid;gap:18px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px 24px}
+.title h1{
+  font-family:"Zen Maru Gothic","Hiragino Maru Gothic ProN",sans-serif;font-weight:900;
+  font-size:clamp(26px,3.4vw,38px);line-height:1.15;margin:0;letter-spacing:.02em;text-wrap:balance;
+}
+.title p{margin:4px 0 0;color:var(--muted);font-size:14px}
+.controls{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.stepper{display:flex;align-items:center;gap:0;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px}
+.stepper span.lbl{padding-inline:12px 6px;color:var(--muted);font-size:13px}
+.stepper output{min-width:2.4em;text-align:center;font-family:"Zen Maru Gothic",sans-serif;font-weight:700;font-size:18px;font-variant-numeric:tabular-nums}
+.stepper button{width:34px;height:34px;border-radius:50%;border:0;background:var(--cover);color:var(--ink);font-size:18px;font-weight:700;cursor:pointer}
+.stepper button:disabled{opacity:.35;cursor:default}
+.btn{
+  font:inherit;font-weight:700;font-size:14px;border-radius:999px;padding:9px 18px;cursor:pointer;
+  border:1px solid var(--line);background:var(--surface);color:var(--ink);
+}
+.btn:hover{border-color:var(--rail)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);padding:10px 22px;font-size:15px}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn:disabled{opacity:.4;cursor:default}
+button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+.stage{background:var(--surface);border-radius:18px;box-shadow:var(--shadow);padding:18px 14px}
+.scroll{overflow-x:auto;padding-bottom:4px}
+.board{display:grid;gap:10px}
+.lanes{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:6px}
+.cell{display:grid;justify-items:center;gap:4px;min-width:0}
+.num{font-size:11px;color:var(--muted);letter-spacing:.08em;font-variant-numeric:tabular-nums}
+.cell input{
+  width:100%;min-width:0;text-align:center;font:inherit;font-weight:500;
+  padding:8px 4px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);
+}
+.cell input::placeholder{color:var(--cover-ink)}
+.namebtn{
+  width:100%;min-width:0;font:inherit;font-weight:700;padding:9px 4px;border-radius:10px;cursor:pointer;
+  border:2px solid var(--c);background:var(--surface);color:var(--ink);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  transition:transform .15s ease, background .2s ease;
+}
+.namebtn:hover:not(:disabled){transform:translateY(-2px)}
+.namebtn:disabled{cursor:default;background:color-mix(in srgb,var(--c) 16%,var(--surface))}
+.namebtn.empty{color:var(--muted);font-weight:500}
+.ladder{position:relative;height:clamp(280px,48vh,540px)}
+.ladder svg{position:absolute;inset:0;width:100%;height:100%;display:block;overflow:visible}
+.veil{
+  position:absolute;inset:18px 0;display:grid;place-items:center;pointer-events:none;
+  color:var(--muted);font-size:14px;text-align:center;padding-inline:12px;
+}
+.veil span{background:var(--surface);padding:6px 14px;border-radius:999px;border:1px dashed var(--rail)}
+.result{
+  width:100%;min-height:58px;border-radius:10px;display:grid;place-items:center;align-content:center;gap:0;
+  background:var(--cover);color:var(--cover-ink);text-align:center;padding:6px 4px;
+  font-family:"Zen Maru Gothic",sans-serif;font-weight:900;font-size:20px;
+  transition:background .3s ease,color .3s ease;
+}
+.result.open{background:var(--c);color:#fff;animation:pop .45s ease}
+.result .r{font-size:clamp(14px,1.6vw,19px);line-height:1.25;overflow-wrap:anywhere}
+.result .who{font-family:"Zen Kaku Gothic New",sans-serif;font-weight:700;font-size:12px;opacity:.92;overflow-wrap:anywhere}
+@keyframes pop{0%{transform:scale(.85)}60%{transform:scale(1.06)}100%{transform:scale(1)}}
+
+.summary{background:var(--surface);border-radius:18px;box-shadow:var(--shadow);padding:18px 20px}
+.summary h2{font-family:"Zen Maru Gothic",sans-serif;font-weight:900;font-size:20px;margin:0 0 10px}
+.summary ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
+.summary li{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;background:var(--bg);min-width:0}
+.summary .k{font-family:"Zen Maru Gothic",sans-serif;font-weight:900;white-space:nowrap}
+.summary .v{font-weight:700;min-width:0;overflow-wrap:anywhere}
+.summary .v.wait{color:var(--cover-ink);font-weight:500}
+.summary .sw{width:10px;height:10px;border-radius:50%;background:var(--c,var(--rail));flex:none}
+.hint{margin:0;color:var(--muted);font-size:13px}
+@media (prefers-reduced-motion: reduce){
+  .result.open{animation:none}
+  .namebtn{transition:none}
+}
+</style>
+
+<div class="app">
+  <header>
+    <div class="title">
+      <h1>あみだで発表順</h1>
+      <p id="lead">① 人数を決める　② 選んだ線の上に名前を書く　③ 下の結果を決める　④ くじをはじめる</p>
+    </div>
+    <div class="controls" id="setupControls">
+      <div class="stepper" role="group" aria-label="人数">
+        <span class="lbl">人数</span>
+        <button type="button" id="minus" aria-label="1人減らす">−</button>
+        <output id="count">6</output>
+        <button type="button" id="plus" aria-label="1人増やす">＋</button>
+      </div>
+      <button type="button" class="btn" id="resetResults">結果を「1番目〜」に戻す</button>
+      <button type="button" class="btn primary" id="startBtn">くじをはじめる</button>
+    </div>
+    <div class="controls" id="playControls" hidden>
+      <button type="button" class="btn primary" id="allBtn">のこりを全部ひらく</button>
+      <button type="button" class="btn" id="redoBtn">横線を引き直す</button>
+      <button type="button" class="btn" id="backBtn">準備にもどる</button>
+    </div>
+  </header>
+
+  <section class="stage">
+    <div class="scroll">
+      <div class="board" id="board">
+        <div class="lanes" id="namesRow"></div>
+        <div class="ladder" id="ladder">
+          <svg id="svg" aria-hidden="true"></svg>
+          <div class="veil" id="veil"><span>横線は「くじをはじめる」を押したときに引かれます</span></div>
+        </div>
+        <div class="lanes" id="resultsRow"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="summary" id="summary" hidden>
+    <h2>発表順</h2>
+    <ol id="summaryList"></ol>
+  </section>
+</div>
+
+<script>
+(() => {
+  const COLORS = ['#E4572E','#2F6BEA','#149E72','#C0399F','#D9920E','#0E8FB0','#7A4FD6','#D6336C','#5E9A22','#B8651B','#3F51B5','#8E5A9B','#00897B','#E0663A','#6D4C41','#546E7A','#AD1457','#2E7D32','#1565C0','#EF6C00'];
+  const MIN = 2, MAX = 20;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const $ = id => document.getElementById(id);
+  const svg = $('svg'), ladder = $('ladder'), board = $('board');
+  const namesRow = $('namesRow'), resultsRow = $('resultsRow');
+
+  let n = 6;
+  let names = Array(n).fill('');
+  let results = Array.from({length:n}, (_, i) => `${i+1}番目`);
+  let phase = 'setup';
+  let rungs = [];      // {g, y}  y: 0..1
+  let done = {};       // lane -> end index
+  let anim = {};       // lane -> {t0, dur}
+  let rafId = null;
+
+  // restore
+  try {
+    const s = JSON.parse(localStorage.getItem('amida-order') || 'null');
+    if (s && s.n >= MIN && s.n <= MAX) { n = s.n; names = s.names; results = s.results; }
+  } catch (e) {}
+  const save = () => { try { localStorage.setItem('amida-order', JSON.stringify({n, names, results})); } catch (e) {} };
+
+  const color = i => COLORS[i % COLORS.length];
+  const label = i => names[i].trim() || `${i+1}番の線`;
+
+  function resize(newN){
+    for (let i = n; i < newN; i++){ names[i] = names[i] ?? ''; results[i] = results[i] ?? `${i+1}番目`; }
+    names.length = newN; results.length = newN; n = newN;
+    save(); build();
+  }
+
+  function genRungs(){
+    const rows = Math.max(10, Math.min(20, n * 2 + 2));
+    const grid = Array.from({length: rows}, () => Array(n - 1).fill(false));
+    for (let r = 0; r < rows; r++){
+      for (let g = 0; g < n - 1; g++){
+        if ((g === 0 || !grid[r][g-1]) && Math.random() < 0.42) grid[r][g] = true;
+      }
+    }
+    // 各すき間に最低2本
+    for (let g = 0; g < n - 1; g++){
+      let cnt = grid.reduce((a, row) => a + (row[g] ? 1 : 0), 0);
+      let guard = 0;
+      while (cnt < 2 && guard++ < 200){
+        const r = Math.floor(Math.random() * rows);
+        if (!grid[r][g] && !grid[r][g-1] && !grid[r][g+1]) { grid[r][g] = true; cnt++; }
+      }
+    }
+    rungs = [];
+    grid.forEach((row, r) => row.forEach((on, g) => {
+      if (on) rungs.push({ g, y: (r + 0.5 + (Math.random() - 0.5) * 0.55) / rows });
+    }));
+    rungs.sort((a, b) => a.y - b.y);
+  }
+
+  function geo(){
+    const W = ladder.clientWidth, H = ladder.clientHeight;
+    const top = 4, bot = H - 4, pad = 22;
+    return {
+      W, H, top, bot,
+      x: i => (i + 0.5) * W / n,
+      y: t => top + pad + t * (bot - top - pad * 2)
+    };
+  }
+
+  function trace(lane, G){
+    let pos = lane;
+    const pts = [[G.x(pos), G.top]];
+    for (const r of rungs){
+      const yy = G.y(r.y);
+      if (r.g === pos - 1){ pts.push([G.x(pos), yy], [G.x(pos-1), yy]); pos--; }
+      else if (r.g === pos){ pts.push([G.x(pos), yy], [G.x(pos+1), yy]); pos++; }
+    }
+    pts.push([G.x(pos), G.bot]);
+    return { end: pos, d: 'M' + pts.map(p => p.map(v => v.toFixed(1)).join(' ')).join(' L') };
+  }
+
+  const NS = 'http://www.w3.org/2000/svg';
+  function el(tag, attrs){ const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; }
+
+  function draw(now){
+    const G = geo();
+    svg.setAttribute('viewBox', `0 0 ${G.W} ${G.H}`);
+    svg.replaceChildren();
+    const sw = n > 12 ? 2.5 : 3;
+    for (let i = 0; i < n; i++) svg.append(el('line', {x1:G.x(i), y1:G.top, x2:G.x(i), y2:G.bot, stroke:'var(--rail)', 'stroke-width':sw, 'stroke-linecap':'round'}));
+    if (phase === 'play'){
+      for (const r of rungs){
+        const yy = G.y(r.y);
+        svg.append(el('line', {x1:G.x(r.g), y1:yy, x2:G.x(r.g+1), y2:yy, stroke:'var(--rung)', 'stroke-width':sw, 'stroke-linecap':'round'}));
+      }
+      const pw = n > 12 ? 5 : 7;
+      const drawPath = (lane, p) => {
+        const t = trace(lane, G);
+        const path = el('path', {d:t.d, fill:'none', stroke:color(lane), 'stroke-width':pw, 'stroke-linecap':'round', 'stroke-linejoin':'round'});
+        svg.append(path);
+        if (p < 1){
+          const len = path.getTotalLength();
+          path.setAttribute('stroke-dasharray', `${len} ${len}`);
+          path.setAttribute('stroke-dashoffset', len * (1 - p));
+          const pt = path.getPointAtLength(len * p);
+          svg.append(el('circle', {cx:pt.x, cy:pt.y, r:pw + 3, fill:color(lane), stroke:'var(--surface)', 'stroke-width':3}));
+        }
+      };
+      for (const lane in done) drawPath(+lane, 1);
+      for (const lane in anim){
+        const a = anim[lane];
+        const p = Math.min(1, (now - a.t0) / a.dur);
+        drawPath(+lane, p < 0 ? 0 : ease(p));
+      }
+    }
+  }
+  const ease = t => t < .5 ? 2*t*t : 1 - Math.pow(-2*t + 2, 2) / 2;
+
+  function loop(now){
+    let active = false;
+    for (const lane in anim){
+      const a = anim[lane];
+      if (now - a.t0 >= a.dur){ finish(+lane); }
+      else active = true;
+    }
+    draw(now);
+    rafId = active ? requestAnimationFrame(loop) : null;
+  }
+
+  function start(lane, delay = 0){
+    if (lane in done || lane in anim) return;
+    const G = geo();
+    const hops = trace(lane, G).d.split('L').length;
+    anim[lane] = { t0: performance.now() + delay, dur: reduce ? 1 : Math.min(3200, 900 + hops * 110) };
+    const b = namesRow.children[lane]?.querySelector('button');
+    if (b) b.disabled = true;
+    if (!rafId) rafId = requestAnimationFrame(loop);
+  }
+
+  function finish(lane){
+    const end = trace(lane, geo()).end;
+    delete anim[lane];
+    done[lane] = end;
+    const card = resultsRow.children[end].querySelector('.result');
+    card.style.setProperty('--c', color(lane));
+    card.className = 'result open';
+    card.innerHTML = '';
+    const r = document.createElement('div'); r.className = 'r'; r.textContent = results[end].trim() || `${end+1}`;
+    const w = document.createElement('div'); w.className = 'who'; w.textContent = label(lane);
+    card.append(r, w);
+    renderSummary();
+  }
+
+  function renderSummary(){
+    const list = $('summaryList');
+    list.replaceChildren();
+    const byEnd = {};
+    for (const lane in done) byEnd[done[lane]] = +lane;
+    for (let k = 0; k < n; k++){
+      const li = document.createElement('li');
+      const sw = document.createElement('span'); sw.className = 'sw';
+      const kk = document.createElement('span'); kk.className = 'k'; kk.textContent = results[k].trim() || `${k+1}`;
+      const v = document.createElement('span');
+      if (k in byEnd){ v.className = 'v'; v.textContent = label(byEnd[k]); sw.style.setProperty('--c', color(byEnd[k])); }
+      else { v.className = 'v wait'; v.textContent = '？'; }
+      li.append(sw, kk, v);
+      list.append(li);
+    }
+    const left = n - Object.keys(done).length - Object.keys(anim).length;
+    $('allBtn').disabled = left <= 0;
+  }
+
+  function build(){
+    board.style.setProperty('--n', n);
+    board.style.minWidth = `${n * (phase === 'setup' ? 78 : 66)}px`;
+    $('count').textContent = n;
+    $('minus').disabled = n <= MIN;
+    $('plus').disabled = n >= MAX;
+    $('setupControls').hidden = phase !== 'setup';
+    $('playControls').hidden = phase !== 'play';
+    $('summary').hidden = phase !== 'play';
+    $('veil').hidden = phase !== 'setup';
+    $('lead').textContent = phase === 'setup'
+      ? '① 人数を決める　② 選んだ線の上に名前を書く　③ 下の結果を決める　④ くじをはじめる'
+      : '名前を押すと、その人の線をたどります';
+
+    namesRow.replaceChildren();
+    resultsRow.replaceChildren();
+    for (let i = 0; i < n; i++){
+      const c = document.createElement('div'); c.className = 'cell';
+      const num = document.createElement('div'); num.className = 'num'; num.textContent = `${i+1}`;
+      if (phase === 'setup'){
+        const inp = document.createElement('input');
+        inp.id = `name-${i}`; inp.value = names[i]; inp.placeholder = '名前'; inp.setAttribute('aria-label', `${i+1}番の線の名前`);
+        inp.addEventListener('input', () => { names[i] = inp.value; save(); });
+        c.append(num, inp);
+      } else {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'namebtn' + (names[i].trim() ? '' : ' empty');
+        b.style.setProperty('--c', color(i));
+        b.textContent = label(i); b.title = label(i);
+        b.disabled = (i in done) || (i in anim);
+        b.addEventListener('click', () => start(i));
+        c.append(num, b);
+      }
+      namesRow.append(c);
+
+      const rc = document.createElement('div'); rc.className = 'cell';
+      if (phase === 'setup'){
+        const inp = document.createElement('input');
+        inp.id = `result-${i}`; inp.value = results[i]; inp.placeholder = `${i+1}番目`; inp.setAttribute('aria-label', `${i+1}番の線の下の結果`);
+        inp.addEventListener('input', () => { results[i] = inp.value; save(); });
+        rc.append(inp);
+      } else {
+        const card = document.createElement('div'); card.className = 'result'; card.textContent = '？';
+        rc.append(card);
+      }
+      resultsRow.append(rc);
+    }
+    if (phase === 'play'){
+      for (const [lane, e] of Object.entries(done)) finishCard(+lane, e);
+      renderSummary();
+    }
+    draw(performance.now());
+  }
+  function finishCard(lane, end){
+    const card = resultsRow.children[end].querySelector('.result');
+    card.style.setProperty('--c', color(lane));
+    card.className = 'result open'; card.style.animation = 'none'; card.innerHTML = '';
+    const r = document.createElement('div'); r.className = 'r'; r.textContent = results[end].trim() || `${end+1}`;
+    const w = document.createElement('div'); w.className = 'who'; w.textContent = label(lane);
+    card.append(r, w);
+  }
+
+  $('minus').onclick = () => resize(Math.max(MIN, n - 1));
+  $('plus').onclick = () => resize(Math.min(MAX, n + 1));
+  $('resetResults').onclick = () => { results = Array.from({length:n}, (_, i) => `${i+1}番目`); save(); build(); };
+  $('startBtn').onclick = () => { phase = 'play'; done = {}; anim = {}; genRungs(); build(); };
+  $('redoBtn').onclick = () => { if (rafId) cancelAnimationFrame(rafId); rafId = null; done = {}; anim = {}; genRungs(); build(); };
+  $('backBtn').onclick = () => { if (rafId) cancelAnimationFrame(rafId); rafId = null; phase = 'setup'; done = {}; anim = {}; build(); };
+  $('allBtn').onclick = () => {
+    let k = 0;
+    for (let i = 0; i < n; i++) if (!(i in done) && !(i in anim)) start(i, reduce ? 0 : (k++) * 350);
+    renderSummary();
+  };
+
+  new ResizeObserver(() => { if (!rafId) draw(performance.now()); }).observe(ladder);
+  build();
+})();
+</script>
+
+</body></html>
