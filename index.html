@@ -1,4 +1,8 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>あみだで発表順</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -53,6 +57,7 @@
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 body{
+  margin:0;
   background:var(--bg);color:var(--ink);
   font-family:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
   font-size:15px;line-height:1.6;
@@ -133,6 +138,8 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
   .namebtn{transition:none}
 }
 </style>
+</head>
+<body>
 
 <div class="app">
   <header>
@@ -192,6 +199,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
   let phase = 'setup';
   let rungs = [];      // {g, y}  y: 0..1
   let done = {};       // lane -> end index
+  let slot = [];       // 下の位置 -> 結果の番号（スタート時にシャッフル）
   let anim = {};       // lane -> {t0, dur}
   let rafId = null;
 
@@ -212,22 +220,41 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
   }
 
   function genRungs(){
-    const rows = Math.max(10, Math.min(20, n * 2 + 2));
-    const grid = Array.from({length: rows}, () => Array(n - 1).fill(false));
-    for (let r = 0; r < rows; r++){
-      for (let g = 0; g < n - 1; g++){
-        if ((g === 0 || !grid[r][g-1]) && Math.random() < 0.42) grid[r][g] = true;
+    // 結果の並びは準備画面で決めた順のまま
+    slot = [...Array(n).keys()];
+    // 線と線のすき間ごとに 3〜4 本（8人以上は 4〜5 本）引く。同じすき間で上下に連続しないようにする
+    // さらに「同じすき間に2本続けて引くなら、その間にとなりのすき間の線が必ず1本ある」ようにする。
+    // （間にとなりの線がないと、行って戻ってくるだけの無意味な線になるため）
+    const many = n >= 8; // 8人以上は 4〜5 本、7人以下は 3〜4 本
+    const lo = many ? 4 : 3;
+    const rows = Math.max(12, Math.ceil(n * (many ? 2.6 : 2)));
+    const G = n - 1;
+    const attempt = () => {
+      const grid = Array.from({length: rows}, () => Array(G).fill(false));
+      const want = Array.from({length: G}, () => Math.random() < 0.5 ? lo : lo + 1);
+      const cnt = Array(G).fill(0);
+      const ok = Array(G).fill(true); // そのすき間に今引いても意味がある状態か
+      for (let r = 0; r < rows; r++){
+        const order = [...Array(G).keys()].sort(() => Math.random() - 0.5);
+        for (const g of order){
+          if (cnt[g] >= want[g] || !ok[g]) continue;
+          if (grid[r][g-1] || grid[r][g+1]) continue;
+          const p = (want[g] - cnt[g]) / (rows - r) * 1.6;
+          if (Math.random() >= p) continue;
+          grid[r][g] = true; cnt[g]++;
+          ok[g] = false;
+          if (g > 0) ok[g-1] = true;
+          if (g < G - 1) ok[g+1] = true;
+        }
       }
+      return { grid, short: cnt.reduce((a, c, g) => a + Math.max(0, Math.min(lo, want[g]) - c), 0) };
+    };
+    let best = attempt();
+    for (let i = 0; i < 80 && best.short > 0; i++){
+      const t = attempt();
+      if (t.short < best.short) best = t;
     }
-    // 各すき間に最低2本
-    for (let g = 0; g < n - 1; g++){
-      let cnt = grid.reduce((a, row) => a + (row[g] ? 1 : 0), 0);
-      let guard = 0;
-      while (cnt < 2 && guard++ < 200){
-        const r = Math.floor(Math.random() * rows);
-        if (!grid[r][g] && !grid[r][g-1] && !grid[r][g+1]) { grid[r][g] = true; cnt++; }
-      }
-    }
+    const grid = best.grid;
     rungs = [];
     grid.forEach((row, r) => row.forEach((on, g) => {
       if (on) rungs.push({ g, y: (r + 0.5 + (Math.random() - 0.5) * 0.55) / rows });
@@ -323,7 +350,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
     card.style.setProperty('--c', color(lane));
     card.className = 'result open';
     card.innerHTML = '';
-    const r = document.createElement('div'); r.className = 'r'; r.textContent = results[end].trim() || `${end+1}`;
+    const r = document.createElement('div'); r.className = 'r'; r.textContent = results[slot[end]].trim() || `${slot[end]+1}`;
     const w = document.createElement('div'); w.className = 'who'; w.textContent = label(lane);
     card.append(r, w);
     renderSummary();
@@ -333,7 +360,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
     const list = $('summaryList');
     list.replaceChildren();
     const byEnd = {};
-    for (const lane in done) byEnd[done[lane]] = +lane;
+    for (const lane in done) byEnd[slot[done[lane]]] = +lane;
     for (let k = 0; k < n; k++){
       const li = document.createElement('li');
       const sw = document.createElement('span'); sw.className = 'sw';
@@ -405,7 +432,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
     const card = resultsRow.children[end].querySelector('.result');
     card.style.setProperty('--c', color(lane));
     card.className = 'result open'; card.style.animation = 'none'; card.innerHTML = '';
-    const r = document.createElement('div'); r.className = 'r'; r.textContent = results[end].trim() || `${end+1}`;
+    const r = document.createElement('div'); r.className = 'r'; r.textContent = results[slot[end]].trim() || `${slot[end]+1}`;
     const w = document.createElement('div'); w.className = 'who'; w.textContent = label(lane);
     card.append(r, w);
   }
@@ -427,4 +454,5 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 })();
 </script>
 
-</body></html>
+</body>
+</html>
